@@ -2,25 +2,38 @@ import csv
 import cv2
 import numpy as np
 
-training_dir = 'track1'
+training_dir = 'data'
 
+print("Reading the driving log...")
 lines = []
 with open(training_dir + '/driving_log.csv') as d_log:
    reader = csv.reader(d_log)
    for line in reader:
       lines.append(line)
 
-images = []
-measurements = []
+print("Building the images...")
+model_images = []
+model_measurements = []
 for line in lines:
+   line = [part.strip() for part in line]
    source_path = line[0]
    filename = source_path.split('/')[-1]
    current_path = training_dir + '/IMG/' + filename
    image = cv2.imread(current_path)
-   images.append(image)
+   model_images.append(image)
 
    measurement = float(line[3])
-   measurements.append(measurement)
+   model_measurements.append(measurement)
+
+images = []
+measurements = []
+for model_image, model_measurement in zip(model_images, model_measurements):
+   images.append(model_image)
+   measurements.append(model_measurement)
+
+   images.append(np.fliplr(model_image))
+   measurements.append(-model_measurement)
+   
 
 X_train = np.array(images)
 y_train = np.array(measurements)
@@ -50,6 +63,8 @@ lenet(model)
 
 model.add(Dense(1))
 model.compile(loss = 'mse', optimizer = 'adam')
+
+print("Training the network...")
 model.fit(X_train, y_train, validation_split = 0.2, shuffle = True, nb_epoch = 5)
 
 model.save('model.h5')
