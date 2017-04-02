@@ -19,7 +19,6 @@ def load_data(training_dir, correction = None):
 
    print(" --> Read", len(lines), "lines...")
    print(" --> Building the images...")
-   correction = 0.1
    for line in lines:
       line = [part.strip() for part in line]
 
