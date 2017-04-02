@@ -2,35 +2,54 @@ import csv
 import cv2
 import numpy as np
 
-training_dir = 'data'
-
-print("Reading the driving log...")
-lines = []
-with open(training_dir + '/driving_log.csv') as d_log:
-   reader = csv.reader(d_log)
-   for line in reader:
-      lines.append(line)
-
-print("Building the images...")
-model_images = []
-model_measurements = []
-for line in lines:
-   line = [part.strip() for part in line]
-   source_path = line[0]
-   filename = source_path.split('/')[-1]
+def load_image(training_dir, path):
+   filename = path.split('/')[-1]
    current_path = training_dir + '/IMG/' + filename
-   image = cv2.imread(current_path)
-   model_images.append(image)
+   return cv2.imread(current_path)
 
-   measurement = float(line[3])
-   model_measurements.append(measurement)
+def load_data(training_dir):
+   model_images, model_measurements = [], []
+   print("Loading data from directory:", training_dir)
+   print(" --> Reading the driving log...")
+   lines = []
+   with open(training_dir + '/driving_log.csv') as d_log:
+      reader = csv.reader(d_log)
+      for line in reader:
+         lines.append(line)
 
-images = []
-measurements = []
+   print(" --> Building the images...")
+   correction = 0.1
+   for line in lines:
+      line = [part.strip() for part in line]
+
+      center_image = load_image(training_dir, line[0])
+      left_image = load_image(training_dir, line[1])
+      right_image = load_image(training_dir, line[2])
+      measurement = float(line[3])
+
+      model_images.extend([center_image, left_image, right_image])
+      model_measurements.extend([measurement, measurement-correction, measurement+correction])
+   
+   return model_images, model_measurements
+
+def load_data_from_dirs(training_dirs):
+   model_images, model_measurements = [], []
+   for training_dir in training_dirs:
+      curr_images, curr_measurements = load_data(training_dir)
+      model_images.extend(curr_images)
+      model_measurements.extend(curr_measurements)
+   return model_images, model_measurements
+      
+model_images, model_measurements = load_data_from_dirs(['data'])
+
+# Derive a bunch of images from the original images
+print("Augmenting images...")
+images, measurements = [], []
 for model_image, model_measurement in zip(model_images, model_measurements):
    images.append(model_image)
    measurements.append(model_measurement)
 
+   # Flip the images
    images.append(np.fliplr(model_image))
    measurements.append(-model_measurement)
    
