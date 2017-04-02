@@ -43,7 +43,9 @@ def load_data_from_dirs(training_dirs, steering_correction = None):
       model_measurements.extend(curr_measurements)
    return model_images, model_measurements
       
-model_images, model_measurements = load_data_from_dirs(['data'])
+model_images, model_measurements = load_data_from_dirs(['data', 'track1', 'track1-lap2', 'track2', 'track2-lap2',
+                                                         'track1-reverse', 'track2-reverse'])
+                                                         #'track1-recovery', 'track2-recovery'])
 
 # Derive a bunch of images from the original images
 print("Augmenting images...")
@@ -71,7 +73,7 @@ def preprocess(model):
 def lenet(model):
    model.add(Convolution2D(6,5,5, activation = 'relu'))
    model.add(MaxPooling2D())
-   model.add(Convolution2D(6,5,5, activation = 'relu'))
+   model.add(Convolution2D(16,5,5, activation = 'relu'))
    model.add(MaxPooling2D())
    model.add(Flatten())
    model.add(Dense(120))
