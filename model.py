@@ -7,7 +7,7 @@ def load_image(training_dir, path):
    current_path = training_dir + '/IMG/' + filename
    return cv2.imread(current_path)
 
-def load_data(training_dir):
+def load_data(training_dir, correction = None):
    model_images, model_measurements = [], []
    print("Loading data from directory:", training_dir)
    print(" --> Reading the driving log...")
@@ -17,25 +17,29 @@ def load_data(training_dir):
       for line in reader:
          lines.append(line)
 
+   print(" --> Read", len(lines), "lines...")
    print(" --> Building the images...")
    correction = 0.1
    for line in lines:
       line = [part.strip() for part in line]
 
       center_image = load_image(training_dir, line[0])
-      left_image = load_image(training_dir, line[1])
-      right_image = load_image(training_dir, line[2])
       measurement = float(line[3])
+      model_images.append(center_image)
+      model_measurements.append(measurement)      
 
-      model_images.extend([center_image, left_image, right_image])
-      model_measurements.extend([measurement, measurement-correction, measurement+correction])
+      if correction is not None:
+         left_image = load_image(training_dir, line[1])
+         right_image = load_image(training_dir, line[2])
+         model_images.extend([left_image, right_image])
+         model_measurements.extend([measurement-correction, measurement+correction])
    
    return model_images, model_measurements
 
-def load_data_from_dirs(training_dirs):
+def load_data_from_dirs(training_dirs, steering_correction = None):
    model_images, model_measurements = [], []
    for training_dir in training_dirs:
-      curr_images, curr_measurements = load_data(training_dir)
+      curr_images, curr_measurements = load_data(training_dir, steering_correction)
       model_images.extend(curr_images)
       model_measurements.extend(curr_measurements)
    return model_images, model_measurements
