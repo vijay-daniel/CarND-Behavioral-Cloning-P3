@@ -1,4 +1,5 @@
 import csv
+import os
 import cv2
 import numpy as np
 
@@ -43,9 +44,8 @@ def load_data_from_dirs(training_dirs, steering_correction = None):
       model_measurements.extend(curr_measurements)
    return model_images, model_measurements
       
-model_images, model_measurements = load_data_from_dirs(['data', 'track1', 'track1-lap2', 'track2', 'track2-lap2',
-                                                         'track1-reverse', 'track2-reverse'])
-                                                         #'track1-recovery', 'track2-recovery'])
+training_dirs = [d for d in os.listdir('training') if os.path.isdir(d)]
+model_images, model_measurements = load_data_from_dirs(training_dirs)
 
 # Derive a bunch of images from the original images
 print("Augmenting images...")
